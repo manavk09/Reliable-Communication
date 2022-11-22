@@ -108,7 +108,7 @@ def parse_args():
     parser.add_argument('--port',
                         type = int,
                         help = "receiver port to connect to (default 50007)",
-                        default = 8080)
+                        default = 50007)
     parser.add_argument('--infile',
                         type = str,
                         help = "name of input file (default test-input.txt)",
