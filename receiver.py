@@ -107,7 +107,7 @@ def parse_args():
     parser.add_argument('--port',
                         type = int,
                         help = "receiver local port to bind to (default 50007)",
-                        default = 50007)
+                        default = 8080)
     parser.add_argument('--outfile',
                         type = str,
                         help = "name of output file (default test-output.txt)",

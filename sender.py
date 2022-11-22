@@ -108,7 +108,7 @@ def parse_args():
     parser.add_argument('--port',
                         type = int,
                         help = "receiver port to connect to (default 50007)",
-                        default = 50007)
+                        default = 8080)
     parser.add_argument('--infile',
                         type = str,
                         help = "name of input file (default test-input.txt)",
@@ -170,7 +170,19 @@ def send_reliable(cs, filedata, receiver_binding, win_size):
     # TODO: This is where you will make your changes. You
     # will not need to change any other parts of this file.
     while win_left_edge < INIT_SEQNO + content_len:
-        win_left_edge = transmit_one()
+        #win_left_edge = transmit_one()
+        readReady, writeReady, errors = select.select([cs],[],[],RTO)
+        if readReady:
+            data_from_receiver, receiver_addr = readReady[0].recvfrom(100)
+            ack_msg = Msg.deserialize(data_from_receiver)
+            win_left_edge = ack_msg.ack
+            if win_left_edge < INIT_SEQNO + content_len:
+                transmit_one()
+            print("Received    {}".format(str(ack_msg)))
+        else:
+            transmit_one()
+        
+        
 
 if __name__ == "__main__":
     args = parse_args()
