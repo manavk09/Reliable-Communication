@@ -171,29 +171,28 @@ def send_reliable(cs, filedata, receiver_binding, win_size):
     # will not need to change any other parts of this file.
     final_ack = INIT_SEQNO + content_len
     first_to_tx = transmit_entire_window_from(win_left_edge)
-    last_acked = 5
-    while win_left_edge < final_ack:
-        readReady, writeReady, errors = select.select([cs],[],[],RTO)
-        if readReady:
-            data_from_receiver, receiver_addr = readReady[0].recvfrom(100)
-            ack_msg = Msg.deserialize(data_from_receiver)
-            # print("LA", last_acked)
-            # print("FTX", first_to_tx)
-            # print("LEFT EDGE", win_left_edge)
-            # print("RIGHT EDGE", win_right_edge)
-            if last_acked < ack_msg.ack:
+    last_acked = win_left_edge
+    while win_right_edge < final_ack:
+        while True:
+            readReady, writeReady, errors = select.select([cs],[],[],RTO)
+            if readReady:
+                data_from_receiver, receiver_addr = readReady[0].recvfrom(100)
+                ack_msg = Msg.deserialize(data_from_receiver)
+                # print("LA", last_acked)
+                # print("FTX", first_to_tx)
+                # print("LEFT EDGE", win_left_edge)
+                # print("RIGHT EDGE", win_right_edge)
                 last_acked = ack_msg.ack
                 win_left_edge = last_acked
-                if last_acked == first_to_tx:
-                    win_right_edge = min(last_acked + win_size, final_ack)
-                else:
-                    win_right_edge = min(first_to_tx + CHUNK_SIZE, final_ack)
-                if first_to_tx < final_ack:
-                    first_to_tx = transmit_entire_window_from(first_to_tx)
-            print("Received    {}".format(str(ack_msg)))
-        else:
-            print("TRANS ONE")
-            transmit_one()
+                win_right_edge = min(win_left_edge + win_size, final_ack)
+                first_to_tx = transmit_entire_window_from(first_to_tx)
+                if final_ack == last_acked:
+                    break
+                print("Received    {}".format(str(ack_msg)))
+            else:
+                print("TRANS ONE")
+                win_left_edge = last_acked
+                first_to_tx = transmit_one()
         
         
 
