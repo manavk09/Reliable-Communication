@@ -169,30 +169,18 @@ def send_reliable(cs, filedata, receiver_binding, win_size):
 
     # TODO: This is where you will make your changes. You
     # will not need to change any other parts of this file.
-    final_ack = INIT_SEQNO + content_len
-    first_to_tx = transmit_entire_window_from(win_left_edge)
-    last_acked = win_left_edge
-    while win_right_edge < final_ack:
-        while True:
-            readReady, writeReady, errors = select.select([cs],[],[],RTO)
-            if readReady:
-                data_from_receiver, receiver_addr = readReady[0].recvfrom(100)
-                ack_msg = Msg.deserialize(data_from_receiver)
-                # print("LA", last_acked)
-                # print("FTX", first_to_tx)
-                # print("LEFT EDGE", win_left_edge)
-                # print("RIGHT EDGE", win_right_edge)
-                last_acked = ack_msg.ack
-                win_left_edge = last_acked
-                win_right_edge = min(win_left_edge + win_size, final_ack)
-                first_to_tx = transmit_entire_window_from(first_to_tx)
-                if final_ack == last_acked:
-                    break
-                print("Received    {}".format(str(ack_msg)))
-            else:
-                print("TRANS ONE")
-                win_left_edge = last_acked
-                first_to_tx = transmit_one()
+    while win_left_edge < INIT_SEQNO + content_len:
+        #win_left_edge = transmit_one()
+        readReady, writeReady, errors = select.select([cs],[],[],RTO)
+        if readReady:
+            data_from_receiver, receiver_addr = readReady[0].recvfrom(100)
+            ack_msg = Msg.deserialize(data_from_receiver)
+            win_left_edge = ack_msg.ack
+            if win_left_edge < INIT_SEQNO + content_len:
+                transmit_one()
+            print("Received    {}".format(str(ack_msg)))
+        else:
+            transmit_one()
         
         
 
