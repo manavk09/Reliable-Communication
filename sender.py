@@ -190,7 +190,7 @@ def send_reliable(cs, filedata, receiver_binding, win_size):
                     break
                 print("Received    {}".format(str(ack_msg)))
             else:
-                print("TRANS ONE")
+                # print("TRANS ONE")
                 win_left_edge = last_acked
                 first_to_tx = transmit_one()
         
